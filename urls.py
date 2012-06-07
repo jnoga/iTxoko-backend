@@ -27,4 +27,5 @@ urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
     url(r'^api/', include(rsc.urls)),
     url(r'^update/', include('items.urls')),
+    url(r'^login/', 'items.views.login'),
 )

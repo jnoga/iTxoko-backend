@@ -1,4 +1,4 @@
-# Django settings for kanalizador project.
+# Django settings for itxoko-backend project.
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -101,7 +101,7 @@ MIDDLEWARE_CLASSES = (
     #'facebook.djangofb.FacebookMiddleware',
 )
 
-ROOT_URLCONF = 'kanalizador.urls'
+ROOT_URLCONF = 'iTxoko-backend.urls'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
@@ -146,3 +146,5 @@ LOGGING = {
         },
     }
 }
+
+AUTH_PROFILE_MODULE = 'items.UserProfile'

@@ -10,6 +10,9 @@ class ItemResource(ModelResource):
     class Meta:
         queryset = Item.objects.all()
         resource_name = 'item'
+        filtering = {
+        	'id' : ['gt'],
+        }
 
 class CourseResource(ModelResource):
 	weekday_set = fields.ToManyField('items.api.WeekDayResource', 'weekday_set', full=True)

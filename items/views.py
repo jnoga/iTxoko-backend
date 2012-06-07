@@ -1,12 +1,39 @@
 from django.http import HttpResponseRedirect
 from django.http import HttpResponse
-from django.core.urlresolvers import reverse 
+from django.core.urlresolvers import reverse
+from django.contrib.auth import authenticate, login
+from django.utils import simplejson
 import datetime
 import utils
 from items.models import Item
 
 def index(request):
     return HttpResponse("Blank Page - Updated")
+
+def login():
+	username = request.POST['username']
+	password = request.POST['password']
+	ans = {}
+	user = authenticate(username=username, password=password)
+	if user is not None:
+		if user.is_active:
+			#login(request, user)
+			# Redirect to a success page.
+			ans={
+				"username": user.username,
+				"campus": user.campus
+			}
+		else:
+			# Return a 'disabled account' error message
+			ans={
+				"error": "disabled account"
+			}
+	else:
+		# Return an 'invalid login' error message.
+		ans={
+			"error": "invalid login"
+		}
+	return HttpResponse(simplejson.dumps(ans), mimetype='application/json')
 
 def updateRss(request) :
 	try:

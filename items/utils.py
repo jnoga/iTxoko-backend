@@ -202,6 +202,15 @@ def checkCourse(code):
 		print e
 		return 0
 
+#check RSS, FB or TW entry exists in DB
+def checkEnty(code):
+	try:
+
+		return 1
+	except Exception, e:
+		print e
+		return 0
+		
 #parse Facebook Entry
 def parseFBEntries(url):
 	try:

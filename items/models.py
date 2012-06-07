@@ -1,6 +1,13 @@
 from django.db import models
+from django.contrib.auth.models import User
 import datetime
 
+class UserProfile(models.Model):
+	user = models.OneToOneField(User)
+
+	campus = models.CharField(max_length=50)
+	loghash = models.CharField(max_length=50)
+		
 class Item(models.Model) :
 	title = models.CharField(max_length=200)
 	desc = models.CharField(max_length=1000)
