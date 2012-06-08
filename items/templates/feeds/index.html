@@ -1,0 +1,13 @@
+<h1>Ultimos feeds</h1>
+{% if latest_entrada_list %}
+    <ul>
+    {% for entrada in latest_entrada_list %}
+        <li>{{ entrada.title }}</li>
+    {% endfor %}
+    </ul>
+    <ul>
+    	<input type=button onClick="parent.location='/kantest/refresh'" value='Refresh'>
+    </ul>
+{% else %}
+    <p>No hay entradas disponibles</p>
+{% endif %}
