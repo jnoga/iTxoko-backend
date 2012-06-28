@@ -5,7 +5,14 @@ from django.contrib.auth import authenticate, login
 from django.utils import simplejson
 import datetime
 import utils
+import urllib
+import urllib2
+import cookielib
+import re
+import mechanize
 from items.models import Item
+
+
 
 def index(request):
     return HttpResponse("Blank Page - Updated")
@@ -37,7 +44,7 @@ def login():
 
 def updateRss(request) :
 	try:
-		utils.parseRSSEntries('http://www.diariovasco.com/rss/feeds/ultima.xml')
+		utils.parseRSSEntries('http://www.meneame.net/rss2.php?meta=0')
 	except Exception as ex:
 		return HttpResponse("Exception: %s" %ex)
 	
@@ -60,11 +67,28 @@ def updateFb(request):
 	return HttpResponse("updateFb")
 
 def updateTT(request):
+
+	"""
+	ua = "Mozilla/5.0 (compatible; Konqueror/3.5.8; Linux)"  
+	h = {"User-Agent": ua}  
+	r = urllib2.Request("https://campus.eps.mondragon.edu/campus/", headers=h)  
+	f = urllib2.urlopen(r)  
+	print f.read() 
+	"""
+
 	try:
-		links = utils.parseCoursesLink('http://intranet.eps.mondragon.edu/pls/hor/wwwHor.Lista?pPer=11217&pObj=C&pTipo=2&pCols=1')
+		links = utils.parseCoursesLink('http://campus.eps.mondragon.edu/pls/hor/wwwHor.Lista?pPer=11218&pObj=C&pTipo=2&pCols=1')
 		for link in links:
 			utils.parseTimeTable(link)
 	except Exception, e:
 		return HttpResponse("Exception: %s" %e)
 
 	return HttpResponse("updateTT")
+
+def updateMail(request):
+	try:
+		utils.parsePOPMail('pop.1and1.es', 'jnogales@gukere.com', '$jn0gal3s', 'contacto@gukere.com')
+	except Exception, e:
+		return HttpResponse("Exception: %s" %e)
+	return HttpResponse("updateMail")
+

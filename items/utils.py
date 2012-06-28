@@ -4,6 +4,7 @@ from utilclasses import MuTimeTableParser, MuCoursesListParser
 import urllib
 from items.models import Course
 from django.utils import encoding
+from items.models import Item
 
 #FACEBOOK_API_KEY = '271906152892747'
 #FACEBOOK_SECRET_KEY = '73ec426b46c6157b8b45401fda377e6f'
@@ -28,11 +29,11 @@ def parseRSSEntries(url):
 			it = Item(title=rss['title'][i],
 				desc=rss['description'][i],
 				author=rss['author'][i],
-				category=rss['category'][i],
+				category='rss',
 				link=rss['link'][i],
 				img="",
 				pub_date=rss['pubDate'][i])
-			#it.save()
+			it.save()
 	except Exception as ex:
 		print("Exception: %s" %ex)
 		return 0
@@ -53,7 +54,7 @@ def parseTweets(username):
 				link="",
 				img=t["user"]["profile_image_url_https"],
 				pub_date=t["created_at"])
-			#it.save()
+			it.save()
 	except Exception, e:
 		print("Exception: %s" %e)
 		return 0
@@ -267,6 +268,53 @@ def parseFBEntries(url):
 def fbAccessToken():
 	
 	return null
+
+#parse POP Mails into db items
+def parsePOPMail(server, username, passw, filter):
+	try:
+		import poplib
+		from email.parser import Parser
+		
+		pop_conn = poplib.POP3_SSL(server)
+		pop_conn.user(username)
+		pop_conn.pass_(passw)
+		
+		messages = [pop_conn.retr(i) for i in range(1, len(pop_conn.list()[1]) + 1)]
+		messages = ["\n".join(mssg[1]) for mssg in messages]
+		messages = [Parser().parsestr(mssg) for mssg in messages]
+		for message in messages:
+			if filter in message['from']:
+				
+				body = ""
+				for part in message.get_payload():
+					body = body + part.as_string()
+	
+				it = Item(title=message['subject'],
+					desc=body[:200],
+					author=message['from'],
+					category='mail',
+					link="",
+					img="",
+					pub_date=message['date'])
+				#checkAndSaveEntry(it)
+				it.save()
+				"""
+				
+				for msg in message.get_payload():
+					print msg
+				"""
+		
+		"""
+		for field, val in messages[0]:
+			print 'Field: ', field
+			print 'Value: ', val
+	
+		"""
+		pop_conn.quit()
+		return 1
+	except Exception, e:
+		print("Exception: %s" %e)
+		return 0
 
 
 

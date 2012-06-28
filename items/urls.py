@@ -11,6 +11,7 @@ urlpatterns = patterns('',
     url(r'tw/','items.views.updateTw'),
     url(r'fb/','items.views.updateFb'),
     url(r'tt/','items.views.updateTT'),
+    url(r'mail/', 'items.views.updateMail'),
     #url(r'^$',
     #    ListView.as_view(
     #        queryset=Item.objects.order_by('-pub_date')[:5],
