@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #Util functions python file
-from utilclasses import MuTimeTableParser, MuCoursesListParser
+from utilclasses import MuTimeTableParser, MuCoursesListParser, RSSImgParser
 import urllib
 import hashlib
 from items.models import Course
@@ -85,16 +85,18 @@ def parseRSSEntries(url):
 	try:
 		import RssLib
 		rss = RssLib.RssLib(url).read()
-		#print(rss)
+		
 		for i in range(0, (len(rss)-1)):
 			#auxi = Item.objects.get(title=rss['title'][0])
+			parser = RSSImgParser()
+			parser.feed(rss['description'][i])
 			it = Item(title=texto2Unicode(rss['title'][i]),
-				desc=texto2Unicode(rss['description'][i]),
+				desc=texto2Unicode(parser.plainData),
 				author=texto2Unicode(rss['author'][i]),
 				#category=texto2Unicode(rss['category'][i]),
 				category=texto2Unicode('rss'),
 				link=texto2Unicode(rss['link'][i]),
-				img="",
+				img=parser.img,
 				pub_date=texto2Unicode(rss['pubDate'][i]))
 			checkAndSaveEntry(it)
 	except Exception as ex:
@@ -107,22 +109,28 @@ def parseTweets(username, hashtag):
 	try:
 		from twython import Twython
 		twitter = Twython()
-		tweets = None
-		twhash = None
 		if(username is not None):
 			tweets = twitter.getUserTimeline( screen_name = username )
+			for t in tweets:
+				it = Item(title=texto2Unicode(t["text"]),
+					desc=texto2Unicode(t["text"]),
+					author=texto2Unicode(t["user"]["screen_name"]),
+					category=texto2Unicode("twitter"),
+					link="",
+					img=texto2Unicode(t["user"]["profile_image_url_https"]),
+					pub_date=texto2Unicode(t["created_at"]))
+				checkAndSaveEntry(it)
 		if(hashtag is not None):
 			twhash = twitter.search(q = hashtag)
-		tweets.extend(twhash)
-		for t in tweets:
-			it = Item(title=texto2Unicode(t["text"]),
-				desc=texto2Unicode(t["text"]),
-				author=texto2Unicode(t["user"]["name"]),
-				category=texto2Unicode("twitter"),
-				link="",
-				img=texto2Unicode(t["user"]["profile_image_url_https"]),
-				pub_date=texto2Unicode(t["created_at"]))
-			checkAndSaveEntry(it)
+			for t in twhash["results"]:
+				it = Item(title=texto2Unicode(t["text"]),
+					desc=texto2Unicode(t["text"]),
+					author=texto2Unicode(t["from_user"]),
+					category=texto2Unicode("twitter"),
+					link="",
+					img=texto2Unicode(t["profile_image_url_https"]),
+					pub_date=texto2Unicode(t["created_at"]))
+				checkAndSaveEntry(it)
 	except Exception, e:
 		print("ExceptionTW: %s" %e)
 		return 0
