@@ -1,26 +1,41 @@
 from django.db import models
-from django.contrib.auth.models import User
 import datetime
 
-class UserProfile(models.Model):
-	user = models.OneToOneField(User)
+ACCOUNT_TYPES = (
+	('tw', 'Twitter'),
+	('rss', 'RSS'),
+	('mail', 'E-mail'),
+	#('fb', 'Facebook'),
+	('tt', 'MU - Time Table')
+)
 
-	campus = models.CharField(max_length=50)
-	loghash = models.CharField(max_length=50)
+class Account(models.Model):
+
+	name = models.CharField(max_length=200)
+	server_url = models.CharField(max_length=300, blank=True)
+	username = models.CharField(max_length=100, blank=True)
+	password = models.CharField(max_length=200, blank=True)
+	content_filter = models.CharField(max_length=200, blank=True)
+	account_type = models.CharField(max_length=4, choices=ACCOUNT_TYPES)
+	save_date = models.DateTimeField("Date", auto_now_add = True)
+	active = models.BooleanField()
+	
+	def __unicode__(self):
+		return self.name
 		
 class Item(models.Model) :
 	title = models.CharField(max_length=200)
-	desc = models.CharField(max_length=1000)
+	desc = models.CharField(max_length=2000)
 	author = models.CharField(max_length=50)
 	link = models.CharField(max_length=300)
 	img = models.CharField(max_length=300)
 	category = models.CharField(max_length=300)
 	pub_date = models.CharField(max_length=200)
 	save_date = models.DateTimeField(("Date"), auto_now_add = True)
-
+	hashmd5 = models.CharField(max_length=50)
 
 	def __unicode__(self):
-		return self.title
+		return self.hashmd5
 	def was_published_today(self):
 		return self.save_date.date() == datetime.date.today()
 	was_published_today.short_description = 'Published today?'

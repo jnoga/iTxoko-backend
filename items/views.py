@@ -1,43 +1,35 @@
 from django.http import HttpResponseRedirect
 from django.http import HttpResponse
-from django.core.urlresolvers import reverse
-from django.contrib.auth import authenticate, login
-from django.utils import simplejson
-import datetime
 import utils
-from items.models import Item
+from items.models import Account
 
 def index(request):
-    return HttpResponse("Blank Page - Updated")
+	try:
+		for ac in Account.objects.filter(active=True):
+			if ac.account_type == 'tw':
+				utils.parseTweets(ac.username, ac.content_filter)
 
-def login():
-	username = request.POST['username']
-	password = request.POST['password']
-	ans = {}
-	user = authenticate(username=username, password=password)
-	if user is not None:
-		if user.is_active:
-			#login(request, user)
-			# Redirect to a success page.
-			ans={
-				"username": user.username,
-				"campus": user.campus
-			}
-		else:
-			# Return a 'disabled account' error message
-			ans={
-				"error": "disabled account"
-			}
-	else:
-		# Return an 'invalid login' error message.
-		ans={
-			"error": "invalid login"
-		}
-	return HttpResponse(simplejson.dumps(ans), mimetype='application/json')
+			elif ac.account_type == 'tt':
+				links = utils.parseCoursesLink(ac.server_url)
+				for link in links:
+					utils.parseTimeTable(link)
+
+			elif ac.account_type == 'rss':
+				utils.parseRSSEntries(ac.server_url)
+
+			elif ac.account_type == 'mail':
+				utils.parsePOPMail(ac.server_url, ac.username, ac.password, ac.content_filter)
+
+	except Exception, e:
+		return HttpResponse("UpdateException: %s" %e)
+
+	return HttpResponse("Data Updated")
+
 
 def updateRss(request) :
 	try:
-		utils.parseRSSEntries('http://www.diariovasco.com/rss/feeds/ultima.xml')
+		for ac in Account.objects.filter(active=True, account_type='rss'):
+			utils.parseRSSEntries(ac.server_url)
 	except Exception as ex:
 		return HttpResponse("Exception: %s" %ex)
 	
@@ -45,11 +37,21 @@ def updateRss(request) :
 
 def updateTw(request):
 	try:
-		utils.parseTweets('dlacroixe')
+		for ac in Account.objects.filter(active=True, account_type='tw'):
+			utils.parseTweets(ac.username, ac.content_filter)
 	except Exception, e:
 		return HttpResponse("Exception: %s" %e)
 	
 	return HttpResponse("updateTw")
+
+"""
+def prevUpdateFb(request):
+	try:
+		pass
+	except Exception, e:
+		return HttpResponse("Exception: %s" %e)
+	
+	return HttpResponse("prevUpdateFb")
 
 def updateFb(request):
 	try:
@@ -58,13 +60,23 @@ def updateFb(request):
 		return HttpResponse("Exception: %s" %e)
 	
 	return HttpResponse("updateFb")
+"""
 
 def updateTT(request):
 	try:
-		links = utils.parseCoursesLink('http://intranet.eps.mondragon.edu/pls/hor/wwwHor.Lista?pPer=11217&pObj=C&pTipo=2&pCols=1')
-		for link in links:
-			utils.parseTimeTable(link)
+		for ac in Account.objects.filter(active=True, account_type='tt'):
+			links = utils.parseCoursesLink(ac.server_url)
+			for link in links:
+				utils.parseTimeTable(link)
 	except Exception, e:
 		return HttpResponse("Exception: %s" %e)
 
 	return HttpResponse("updateTT")
+
+def updateMail(request):
+	try:
+		for ac in Account.objects.filter(active=True, account_type='mail'):
+			utils.parsePOPMail(ac.server_url, ac.username, ac.password, ac.content_filter)
+	except Exception, e:
+		return HttpResponse("Exception: %s" %e)
+	return HttpResponse("updateMail")

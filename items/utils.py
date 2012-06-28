@@ -1,12 +1,56 @@
-# -*- coding: latin-1 -*-
+# -*- coding: utf-8 -*-
 #Util functions python file
 from utilclasses import MuTimeTableParser, MuCoursesListParser
 import urllib
+import hashlib
 from items.models import Course
-from django.utils import encoding
+from items.models import Item
 
-#FACEBOOK_API_KEY = '271906152892747'
-#FACEBOOK_SECRET_KEY = '73ec426b46c6157b8b45401fda377e6f'
+#parse POP Mails into db items
+def parsePOPMail(server, username, passw, from_filter):
+	try:
+		import poplib
+		from email.parser import Parser
+		
+		pop_conn = poplib.POP3_SSL(server)
+		pop_conn.user(username)
+		pop_conn.pass_(passw)
+		
+		messages = [pop_conn.retr(i) for i in range(1, len(pop_conn.list()[1]) + 1)]
+		messages = ["\n".join(mssg[1]) for mssg in messages]
+		messages = [Parser().parsestr(mssg) for mssg in messages]
+		print messages
+		for message in messages:
+			if from_filter in message['from']:
+				
+				body = ""
+				for part in message.get_payload():
+					body = body + part.as_string()
+	
+				it = Item(title=message['subject'],
+					desc=body[:2000],
+					author=message['from'],
+					category='mail',
+					link="",
+					img="",
+					pub_date=message['date'])
+				checkAndSaveEntry(it)
+				"""
+				for msg in message.get_payload():
+					print msg
+				"""
+		
+		"""
+		for field, val in messages[0]:
+			print 'Field: ', field
+			print 'Value: ', val
+	
+		"""
+		pop_conn.quit()
+		return 1
+	except Exception, e:
+		print("Exception: %s" %e)
+		return 0
 
 #parses MU Course Links
 def parseCoursesLink(url):
@@ -17,6 +61,25 @@ def parseCoursesLink(url):
 	parser.feed(html)
 	return parser.coursesLinks
 
+#parse text to unicode
+def texto2Unicode(data):
+	try:
+		"""
+		from kitchen.text.converters import to_unicode
+		from kitchen.i18n import get_translation_object
+
+		translations = get_translation_object('TextTreater')
+		_ = translations.ugettext
+		b_ = translations.lgettext
+		"""
+		#aux = (u'%s') % to_unicode(data, 'utf-8')
+		aux = data.encode("utf-8")
+
+		return aux
+	except Exception, e:
+		print 'ExceptionTextConverter: ', e
+		return data
+
 #parses RSS entries into db items
 def parseRSSEntries(url):
 	try:
@@ -25,37 +88,43 @@ def parseRSSEntries(url):
 		#print(rss)
 		for i in range(0, (len(rss)-1)):
 			#auxi = Item.objects.get(title=rss['title'][0])
-			it = Item(title=rss['title'][i],
-				desc=rss['description'][i],
-				author=rss['author'][i],
-				category=rss['category'][i],
-				link=rss['link'][i],
+			it = Item(title=texto2Unicode(rss['title'][i]),
+				desc=texto2Unicode(rss['description'][i]),
+				author=texto2Unicode(rss['author'][i]),
+				#category=texto2Unicode(rss['category'][i]),
+				category=texto2Unicode('rss'),
+				link=texto2Unicode(rss['link'][i]),
 				img="",
-				pub_date=rss['pubDate'][i])
-			#it.save()
+				pub_date=texto2Unicode(rss['pubDate'][i]))
+			checkAndSaveEntry(it)
 	except Exception as ex:
-		print("Exception: %s" %ex)
+		print("ExceptionRSS: %s" %ex)
 		return 0
 	return 1
 
 #parses Twitter tweets into db items
-def parseTweets(username):
+def parseTweets(username, hashtag):
 	try:
 		from twython import Twython
 		twitter = Twython()
-		tweets = twitter.getUserTimeline( screen_name = username )
-		#print (tweets)
+		tweets = None
+		twhash = None
+		if(username is not None):
+			tweets = twitter.getUserTimeline( screen_name = username )
+		if(hashtag is not None):
+			twhash = twitter.search(q = hashtag)
+		tweets.extend(twhash)
 		for t in tweets:
-			it = Item(title=t["text"],
-				desc=t["text"],
-				author=t["user"]["name"],
-				category="twitter",
+			it = Item(title=texto2Unicode(t["text"]),
+				desc=texto2Unicode(t["text"]),
+				author=texto2Unicode(t["user"]["name"]),
+				category=texto2Unicode("twitter"),
 				link="",
-				img=t["user"]["profile_image_url_https"],
-				pub_date=t["created_at"])
-			#it.save()
+				img=texto2Unicode(t["user"]["profile_image_url_https"]),
+				pub_date=texto2Unicode(t["created_at"]))
+			checkAndSaveEntry(it)
 	except Exception, e:
-		print("Exception: %s" %e)
+		print("ExceptionTW: %s" %e)
 		return 0
 	return 1
 
@@ -199,17 +268,24 @@ def checkCourse(code):
 		c.delete()
 		return 1
 	except Exception, e:
-		print e
+		print 'ExceptionTT: ', e
 		return 0
 
-#check RSS, FB or TW entry exists in DB
-def checkEnty(code):
+#check RSS, FB, Mail or TW entry exists in DB
+def checkAndSaveEntry(item):
+
+	m = hashlib.md5(item.title+item.author+item.pub_date).hexdigest()
+
 	try:
-
-		return 1
+		it = Item.objects.get(hashmd5=m)
+		#exists...
+		return it
 	except Exception, e:
-		print e
-		return 0
+		#does not exist
+		print 'ExceptionSaveIT: ', e
+		item.hashmd5 = m
+		item.save()
+		return item
 		
 #parse Facebook Entry
 def parseFBEntries(url):
@@ -217,7 +293,7 @@ def parseFBEntries(url):
 		from urllib2 import urlopen
 		from simplejson import loads
 
-		FACEBOOK_ACCESS_TOKEN = 'AAAAAAITEghMBANASYFB9sIq5ZBbdd7NyML2FWB1UujSLd22XUqsYY9EaxZCTBIfd0vUeZAebi5qmhjnZAYEZAvZATwDZB3KCxPXVCZAAmyZAZAehnXRYscJbE3'
+		FACEBOOK_ACCESS_TOKEN = fbAccessToken()
 
 		entries = loads(urlopen(url+FACEBOOK_ACCESS_TOKEN).read())
 		#print(entries)
@@ -250,12 +326,13 @@ def parseFBEntries(url):
 			it = Item(title=title,
 				desc=desc,
 				author=f["from"]["name"],
-				category=f["type"],
+				#category=f["type"],
+				category='facebook',
 				link=link,
 				img=picture,
 				pub_date=f["created_time"])
 			print(it)
-			#it.save()
+			checkAndSaveEntry(it)
 			
 	except Exception, e:
 		print("Exception: %s" %e)
@@ -265,8 +342,17 @@ def parseFBEntries(url):
 
 #gets the access token from facebook
 def fbAccessToken():
-	
-	return null
+	"""
+	my_url = ""
+	code = ""
+
+	dialog_url = "http://www.facebook.com/dialog/oauth?client_id"+		app_id+""
+	token_url = "https://graph.facebook.com/oauth/access_token?client_id="+
+		app_id+"&redirect_uri="+my_url+"&client_secret="+app_secret+"code="+code
+
+	at = 'AAAAAAITEghMBANASYFB9sIq5ZBbdd7NyML2FWB1UujSLd22XUqsYY9EaxZCTBIfd0vUeZAebi5qmhjnZAYEZAvZATwDZB3KCxPXVCZAAmyZAZAehnXRYscJbE3'
+	"""
+	return 0
 
 
 

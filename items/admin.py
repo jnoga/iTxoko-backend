@@ -1,4 +1,4 @@
-from items.models import Item
+from items.models import Account
 from django.contrib import admin
 
 
@@ -15,4 +15,6 @@ class ItemAdmin(admin.ModelAdmin):
 	date_hierarchy = 'save_date'
 
 
-admin.site.register(Item, ItemAdmin)
+#admin.site.register(Item, ItemAdmin)
+#admin.site.register(Course)
+admin.site.register(Account)
