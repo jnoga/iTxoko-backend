@@ -41,9 +41,10 @@ class MuTimeTableParser(HTMLParser):
 			self.excepFlag = 0
 		elif self.celdaFlag:
 			#print "Data appended: ", data
-			val = " "
+			val = "-"
 			try:
-				val = data.encode("utf8", "ignore")
+				oldv = data.encode("utf8", "ignore")
+				val = oldv.replace('"', '')
 			except Exception, e:
 				pass
 				#print "Data exception : ", e
