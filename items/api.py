@@ -20,6 +20,9 @@ class CourseResource(ModelResource):
 	class Meta:
 		queryset = Course.objects.all()
 		resource_name = 'course'
+		filtering = {
+			'code': ('exact'),
+		}
 
 class WeekDayResource(ModelResource):
 	#course = fields.ToOneField(CourseResource, 'course')
