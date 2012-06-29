@@ -1,5 +1,5 @@
 from django.conf.urls.defaults import patterns, include, url
-from items.api import ItemResource, CourseResource, WeekDayResource, ClassInfoResource
+from items.api import ItemResource, CourseResource, SimpleCourseResource, WeekDayResource, ClassInfoResource
 from tastypie.api import Api
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
@@ -9,6 +9,7 @@ admin.autodiscover()
 rsc = Api(api_name='rsc')
 rsc.register(ItemResource())
 rsc.register(CourseResource())
+rsc.register(SimpleCourseResource())
 rsc.register(WeekDayResource())
 rsc.register(ClassInfoResource())
 

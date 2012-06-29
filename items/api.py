@@ -14,6 +14,12 @@ class ItemResource(ModelResource):
         	'id' : ['gt'],
         }
 
+class SimpleCourseResource(ModelResource):
+	class Meta:
+		queryset = Course.objects.all()
+		resource_name = 'scourse'
+		excludes = ['id', 'resource_uri', 'room', 'weekday_set']
+
 class CourseResource(ModelResource):
 	weekday_set = fields.ToManyField('items.api.WeekDayResource', 'weekday_set', full=True)
 

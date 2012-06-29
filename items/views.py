@@ -44,24 +44,6 @@ def updateTw(request):
 	
 	return HttpResponse("updateTw")
 
-"""
-def prevUpdateFb(request):
-	try:
-		pass
-	except Exception, e:
-		return HttpResponse("Exception: %s" %e)
-	
-	return HttpResponse("prevUpdateFb")
-
-def updateFb(request):
-	try:
-		utils.parseFBEntries('https://graph.facebook.com/me/feed?access_token=')			
-	except Exception, e:
-		return HttpResponse("Exception: %s" %e)
-	
-	return HttpResponse("updateFb")
-"""
-
 def updateTT(request):
 	try:
 		for ac in Account.objects.filter(active=True, account_type='tt'):

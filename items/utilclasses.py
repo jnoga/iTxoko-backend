@@ -64,7 +64,7 @@ class MuCoursesListParser(HTMLParser):
 				if attr == 'href':
 					self.coursesLinks.append('http://intranet.eps.mondragon.edu/pls/hor/'+val)
 
-class RSSImgParser(HTMLParser):
+class ContentDataImgParser(HTMLParser):
 	def __init__(self):
 		HTMLParser.__init__(self)
 		self.img = ""

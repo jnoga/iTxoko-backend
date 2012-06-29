@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #Util functions python file
-from utilclasses import MuTimeTableParser, MuCoursesListParser, RSSImgParser
+from utilclasses import MuTimeTableParser, MuCoursesListParser, ContentDataImgParser
 import urllib
 import hashlib
 from items.models import Course
@@ -19,13 +19,20 @@ def parsePOPMail(server, username, passw, from_filter):
 		messages = [pop_conn.retr(i) for i in range(1, len(pop_conn.list()[1]) + 1)]
 		messages = ["\n".join(mssg[1]) for mssg in messages]
 		messages = [Parser().parsestr(mssg) for mssg in messages]
-		print messages
+
 		for message in messages:
+
 			if from_filter in message['from']:
-				
 				body = ""
+				flag = 1
 				for part in message.get_payload():
-					body = body + part.as_string()
+					if flag:
+						#print part.as_string()
+						part.__delitem__('Content-Type')
+						#print part['Content-Type']
+						body = body + part.as_string()
+						flag = 0
+				#print body
 	
 				it = Item(title=message['subject'],
 					desc=body[:2000],
@@ -39,13 +46,7 @@ def parsePOPMail(server, username, passw, from_filter):
 				for msg in message.get_payload():
 					print msg
 				"""
-		
-		"""
-		for field, val in messages[0]:
-			print 'Field: ', field
-			print 'Value: ', val
 	
-		"""
 		pop_conn.quit()
 		return 1
 	except Exception, e:
@@ -88,7 +89,7 @@ def parseRSSEntries(url):
 		
 		for i in range(0, (len(rss)-1)):
 			#auxi = Item.objects.get(title=rss['title'][0])
-			parser = RSSImgParser()
+			parser = ContentDataImgParser()
 			parser.feed(rss['description'][i])
 			it = Item(title=texto2Unicode(rss['title'][i]),
 				desc=texto2Unicode(parser.plainData),
@@ -294,73 +295,6 @@ def checkAndSaveEntry(item):
 		item.hashmd5 = m
 		item.save()
 		return item
-		
-#parse Facebook Entry
-def parseFBEntries(url):
-	try:
-		from urllib2 import urlopen
-		from simplejson import loads
-
-		FACEBOOK_ACCESS_TOKEN = fbAccessToken()
-
-		entries = loads(urlopen(url+FACEBOOK_ACCESS_TOKEN).read())
-		#print(entries)
-		for f in entries["data"]:
-			#print(type(f))
-			#print(f.find("picture"))
-			title=""
-			desc=""
-			link=""
-			picture=""
-
-			if "story" in f:
-				title=f["story"]
-			elif "message" in f:
-				title=f["message"]
-							
-			if "message" in f:
-				desc=f["message"]
-			elif "name" in f:
-				desc=f["name"]
-			
-			if "link" in f:
-				link=f["link"]
-			
-			if "picture" in f:
-				picture=f["picture"]
-			elif "icon" in f:
-				picture=f["icon"]
-
-			it = Item(title=title,
-				desc=desc,
-				author=f["from"]["name"],
-				#category=f["type"],
-				category='facebook',
-				link=link,
-				img=picture,
-				pub_date=f["created_time"])
-			print(it)
-			checkAndSaveEntry(it)
-			
-	except Exception, e:
-		print("Exception: %s" %e)
-		return 0
-	
-	return 1
-
-#gets the access token from facebook
-def fbAccessToken():
-	"""
-	my_url = ""
-	code = ""
-
-	dialog_url = "http://www.facebook.com/dialog/oauth?client_id"+		app_id+""
-	token_url = "https://graph.facebook.com/oauth/access_token?client_id="+
-		app_id+"&redirect_uri="+my_url+"&client_secret="+app_secret+"code="+code
-
-	at = 'AAAAAAITEghMBANASYFB9sIq5ZBbdd7NyML2FWB1UujSLd22XUqsYY9EaxZCTBIfd0vUeZAebi5qmhjnZAYEZAvZATwDZB3KCxPXVCZAAmyZAZAehnXRYscJbE3'
-	"""
-	return 0
 
 
 
