@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #Util functions python file
-from utilclasses import MuTimeTableParser, MuCoursesListParser, ContentDataImgParser
+from utilclasses import MuTimeTableParser, MuCoursesListParser, ContentDataImgParser, MuSubjectParser
 import urllib
 import hashlib
 from items.models import Course
@@ -134,6 +134,16 @@ def parseTweets(username, hashtag):
 		return 0
 	return 1
 
+def getDictValue(_dict, key):
+	data = key
+	try:
+		if key in _dict:
+			data = _dict[key]
+	except Exception, e:
+		pass
+
+	return data
+
 #parses MU Timetable into a TimeTable object
 def parseTimeTable(url):
 	f = urllib.urlopen(url)
@@ -144,124 +154,137 @@ def parseTimeTable(url):
 	parser = MuTimeTableParser()
 	parser.feed(s)
 
+	subs = MuSubjectParser()
+	subs.feed(s)
+
 	#Create Course Model
 	checkCourse(parser.tableInfo[3])
 	c = Course(code=parser.tableInfo[3], room=parser.tableInfo[5], name=parser.tableInfo[4])
 	c.save()
 	#Create week days for course and fullfill them
+
 	d = c.weekday_set.create(data=parser.tableInfo[0], 
 				valid_data=parser.tableInfo[2], 
 				day="Astelehena/Lunes")
+
 	d.classinfo_set.create(hour=parser.timeTable[0][1],
-							subject=parser.timeTable[0][2],
+							subject=getDictValue(subs.subjectList, parser.timeTable[0][2]),
 							prof=parser.timeTable[0][3],
 							room=parser.timeTable[0][4])
 	d.classinfo_set.create(hour=parser.timeTable[0][5],
-							subject=parser.timeTable[0][6],
+							subject=getDictValue(subs.subjectList, parser.timeTable[0][6]),
 							prof=parser.timeTable[0][7],
 							room=parser.timeTable[0][8])
 	d.classinfo_set.create(hour=parser.timeTable[0][9],
-							subject=parser.timeTable[0][10],
+							subject=getDictValue(subs.subjectList, parser.timeTable[0][10]),
 							prof=parser.timeTable[0][11],
 							room=parser.timeTable[0][12])
 	d.classinfo_set.create(hour=parser.timeTable[0][13],
-							subject=parser.timeTable[0][14],
+							subject=getDictValue(subs.subjectList, parser.timeTable[0][14]),
 							prof=parser.timeTable[0][15],
 							room=parser.timeTable[0][16])
 	d.classinfo_set.create(hour=parser.timeTable[0][17],
-							subject=parser.timeTable[0][18],
+							subject=getDictValue(subs.subjectList, parser.timeTable[0][18]),
 							prof=parser.timeTable[0][19],
 							room=parser.timeTable[0][20])
+	
 	d = c.weekday_set.create(data=parser.tableInfo[0], 
 				valid_data=parser.tableInfo[2], 
 				day="Asteartea/Martes")
+
 	d.classinfo_set.create(hour=parser.timeTable[1][1],
-							subject=parser.timeTable[1][2],
+							subject=getDictValue(subs.subjectList, parser.timeTable[1][2]),
 							prof=parser.timeTable[1][3],
 							room=parser.timeTable[1][4])
 	d.classinfo_set.create(hour=parser.timeTable[1][5],
-							subject=parser.timeTable[1][6],
+							subject=getDictValue(subs.subjectList, parser.timeTable[1][6]),
 							prof=parser.timeTable[1][7],
 							room=parser.timeTable[1][8])
 	d.classinfo_set.create(hour=parser.timeTable[1][9],
-							subject=parser.timeTable[1][10],
+							subject=getDictValue(subs.subjectList, parser.timeTable[1][10]),
 							prof=parser.timeTable[1][11],
 							room=parser.timeTable[1][12])
 	d.classinfo_set.create(hour=parser.timeTable[1][13],
-							subject=parser.timeTable[1][14],
+							subject=getDictValue(subs.subjectList, parser.timeTable[1][14]),
 							prof=parser.timeTable[1][15],
 							room=parser.timeTable[1][16])
 	d.classinfo_set.create(hour=parser.timeTable[1][17],
-							subject=parser.timeTable[1][18],
+							subject=getDictValue(subs.subjectList, parser.timeTable[1][18]),
 							prof=parser.timeTable[1][19],
 							room=parser.timeTable[1][20])
+	
 	d = c.weekday_set.create(data=parser.tableInfo[0], 
 				valid_data=parser.tableInfo[2], 
 				day=u'Asteazkena/Miércoles')
+
 	d.classinfo_set.create(hour=parser.timeTable[2][1],
-							subject=parser.timeTable[2][2],
+							subject=getDictValue(subs.subjectList, parser.timeTable[2][2]),
 							prof=parser.timeTable[2][3],
 							room=parser.timeTable[2][4])
 	d.classinfo_set.create(hour=parser.timeTable[2][5],
-							subject=parser.timeTable[2][6],
+							subject=getDictValue(subs.subjectList, parser.timeTable[2][6]),
 							prof=parser.timeTable[2][7],
 							room=parser.timeTable[2][8])
 	d.classinfo_set.create(hour=parser.timeTable[2][9],
-							subject=parser.timeTable[2][10],
+							subject=getDictValue(subs.subjectList, parser.timeTable[2][10]),
 							prof=parser.timeTable[2][11],
 							room=parser.timeTable[2][12])
 	d.classinfo_set.create(hour=parser.timeTable[2][13],
-							subject=parser.timeTable[2][14],
+							subject=getDictValue(subs.subjectList, parser.timeTable[2][14]),
 							prof=parser.timeTable[2][15],
 							room=parser.timeTable[2][16])
 	d.classinfo_set.create(hour=parser.timeTable[2][17],
-							subject=parser.timeTable[2][18],
+							subject=getDictValue(subs.subjectList, parser.timeTable[2][18]),
 							prof=parser.timeTable[2][19],
 							room=parser.timeTable[2][20])
+
 	d = c.weekday_set.create(data=parser.tableInfo[0], 
 				valid_data=parser.tableInfo[2], 
 				day="Osteguna/Jueves")
+
 	d.classinfo_set.create(hour=parser.timeTable[3][1],
-							subject=parser.timeTable[3][2],
+							subject=getDictValue(subs.subjectList, parser.timeTable[3][2]),
 							prof=parser.timeTable[3][3],
 							room=parser.timeTable[3][4])
 	d.classinfo_set.create(hour=parser.timeTable[3][5],
-							subject=parser.timeTable[3][6],
+							subject=getDictValue(subs.subjectList, parser.timeTable[3][6]),
 							prof=parser.timeTable[3][7],
 							room=parser.timeTable[3][8])
 	d.classinfo_set.create(hour=parser.timeTable[3][9],
-							subject=parser.timeTable[3][10],
+							subject=getDictValue(subs.subjectList, parser.timeTable[3][10]),
 							prof=parser.timeTable[3][11],
 							room=parser.timeTable[3][12])
 	d.classinfo_set.create(hour=parser.timeTable[3][13],
-							subject=parser.timeTable[3][14],
+							subject=getDictValue(subs.subjectList, parser.timeTable[3][14]),
 							prof=parser.timeTable[3][15],
 							room=parser.timeTable[3][16])
 	d.classinfo_set.create(hour=parser.timeTable[3][17],
-							subject=parser.timeTable[3][18],
+							subject=getDictValue(subs.subjectList, parser.timeTable[3][18]),
 							prof=parser.timeTable[3][19],
 							room=parser.timeTable[3][20])
+	
 	d = c.weekday_set.create(data=parser.tableInfo[0], 
 				valid_data=parser.tableInfo[2], 
 				day="Ostirala/Viernes")
+
 	d.classinfo_set.create(hour=parser.timeTable[4][1],
-							subject=parser.timeTable[4][2],
+							subject=getDictValue(subs.subjectList, parser.timeTable[4][2]),
 							prof=parser.timeTable[4][3],
 							room=parser.timeTable[4][4])
 	d.classinfo_set.create(hour=parser.timeTable[4][5],
-							subject=parser.timeTable[4][6],
+							subject=getDictValue(subs.subjectList, parser.timeTable[4][6]),
 							prof=parser.timeTable[4][7],
 							room=parser.timeTable[4][8])
 	d.classinfo_set.create(hour=parser.timeTable[4][9],
-							subject=parser.timeTable[4][10],
+							subject=getDictValue(subs.subjectList, parser.timeTable[4][10]),
 							prof=parser.timeTable[4][11],
 							room=parser.timeTable[4][12])
 	d.classinfo_set.create(hour=parser.timeTable[4][13],
-							subject=parser.timeTable[4][14],
+							subject=getDictValue(subs.subjectList, parser.timeTable[4][14]),
 							prof=parser.timeTable[4][15],
 							room=parser.timeTable[4][16])
 	d.classinfo_set.create(hour=parser.timeTable[4][17],
-							subject=parser.timeTable[4][18],
+							subject=getDictValue(subs.subjectList, parser.timeTable[4][18]),
 							prof=parser.timeTable[4][19],
 							room=parser.timeTable[4][20])
 	c.save()

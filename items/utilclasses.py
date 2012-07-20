@@ -1,6 +1,37 @@
 
 from HTMLParser import HTMLParser
 
+class MuSubjectParser(HTMLParser):
+	def __init__(self):
+		HTMLParser.__init__(self)
+		self.subjectList = {}
+		self.tagi = 0
+		self.tdi = 0
+		self.dataFlag = 0
+		self.subName = ""
+
+	def handle_starttag(self, tag, attrs):
+		if tag == 'table':
+			if self.tagi < 7:
+				self.tagi +=1
+		elif tag == 'td' and self.tdi < 2 and self.tagi == 7:
+			self.tdi += 1
+			self.dataFlag = 1
+
+	def handle_endtag(self, tag):
+		if tag == 'tr':
+			self.tdi = 0
+		elif tag == 'table' and self.tagi == 7:
+			self.tagi = 0
+
+	def handle_data(self, data):
+		if self.dataFlag and self.tdi == 1:
+			self.subName = data
+			self.dataFlag = 0
+		elif self.dataFlag and self.tdi == 2:
+			self.subjectList[self.subName] = data
+			self.dataFlag = 0
+
 # create a subclass and override the handler methods
 class MuTimeTableParser(HTMLParser):
 	def __init__(self):
@@ -23,6 +54,8 @@ class MuTimeTableParser(HTMLParser):
 				self.excepFlag = 1
 			elif attr == 'class' and (val == "HorarioRes" or val == "HorarioCelda"):
 				self.celdaFlag = 1
+			elif attr == 'class' and val == "horarioLeyenDato":
+				self.leyenFlag = 1
 
 	def handle_data(self, data):
 		if self.i > 4:
@@ -40,14 +73,12 @@ class MuTimeTableParser(HTMLParser):
 			self.i += 1
 			self.excepFlag = 0
 		elif self.celdaFlag:
-			#print "Data appended: ", data
 			val = "-"
 			try:
 				oldv = data.encode("utf8", "ignore")
 				val = oldv.replace('"', '')
 			except Exception, e:
 				pass
-				#print "Data exception : ", e
 			self.timeTable[self.i].append(val)
 			self.i += 1
 			self.celdaFlag = 0
